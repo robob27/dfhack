@@ -50,7 +50,6 @@ using namespace DFHack;
 #include "DataDefs.h"
 
 #include "df/announcement_flags.h"
-#include "df/assign_trade_status.h"
 #include "df/building_cagest.h"
 #include "df/building_civzonest.h"
 #include "df/building_furnacest.h"
@@ -82,36 +81,7 @@ using namespace DFHack;
 #include "df/ui_unit_view_mode.h"
 #include "df/unit.h"
 #include "df/unit_inventory_item.h"
-#include "df/viewscreen_announcelistst.h"
-#include "df/viewscreen_assign_display_itemst.h"
-#include "df/viewscreen_buildinglistst.h"
-#include "df/viewscreen_customize_unitst.h"
-#include "df/viewscreen_dungeon_monsterstatusst.h"
-#include "df/viewscreen_dungeonmodest.h"
 #include "df/viewscreen_dwarfmodest.h"
-#include "df/viewscreen_itemst.h"
-#include "df/viewscreen_joblistst.h"
-#include "df/viewscreen_jobmanagementst.h"
-#include "df/viewscreen_jobst.h"
-#include "df/viewscreen_layer.h"
-#include "df/viewscreen_layer_assigntradest.h"
-#include "df/viewscreen_layer_militaryst.h"
-#include "df/viewscreen_layer_noblelistst.h"
-#include "df/viewscreen_layer_overall_healthst.h"
-#include "df/viewscreen_layer_stockpilest.h"
-#include "df/viewscreen_layer_unit_healthst.h"
-#include "df/viewscreen_layer_unit_relationshipst.h"
-#include "df/viewscreen_locationsst.h"
-#include "df/viewscreen_petst.h"
-#include "df/viewscreen_storesst.h"
-#include "df/viewscreen_textviewerst.h"
-#include "df/viewscreen_tradegoodsst.h"
-#include "df/viewscreen_unitlistst.h"
-#include "df/viewscreen_unitst.h"
-#include "df/viewscreen_reportlistst.h"
-#include "df/viewscreen_treasurelistst.h"
-#include "df/viewscreen_workquota_conditionst.h"
-#include "df/viewscreen_workshop_profilest.h"
 #include "df/world.h"
 
 const size_t MAX_REPORTS_SIZE = 3000; // DF clears old reports to maintain this vector size
@@ -135,11 +105,6 @@ using df::global::ui;
 using df::global::ui_menu_width;
 using df::global::ui_sidebar_menus;
 using df::global::world;
-
-static df::layer_object_listst *getLayerList(df::viewscreen_layer *layer, int idx)
-{
-    return virtual_cast<df::layer_object_listst>(vector_get(layer->layer_objects,idx));
-}
 
 static std::string getNameChunk(virtual_identity *id, int start, int end)
 {
@@ -343,7 +308,7 @@ DEFINE_GET_FOCUS_STRING_HANDLER(dwarfmode)
             focus += "/List";
         break;
 
-    case Hauling:
+    /*case Hauling:
         if (ui->hauling.in_assign_vehicle)
         {
             auto vehicle = vector_get(ui->hauling.vehicles, ui->hauling.cursor_vehicle);
@@ -380,224 +345,11 @@ DEFINE_GET_FOCUS_STRING_HANDLER(dwarfmode)
             else
                 focus += "/Select/" + tag;
         }
-        break;
+        break;*/
 
     default:
         break;
     }
-}
-
-DEFINE_GET_FOCUS_STRING_HANDLER(dungeonmode)
-{
-    using df::global::ui_advmode;
-
-    if (!ui_advmode)
-        return;
-
-    focus += "/" + enum_item_key(ui_advmode->menu);
-}
-
-DEFINE_GET_FOCUS_STRING_HANDLER(unitlist)
-{
-    focus += "/" + enum_item_key(screen->page);
-}
-
-DEFINE_GET_FOCUS_STRING_HANDLER(layer_military)
-{
-    auto list1 = getLayerList(screen, 0);
-    auto list2 = getLayerList(screen, 1);
-    auto list3 = getLayerList(screen, 2);
-    if (!list1 || !list2 || !list3) return;
-
-    focus += "/" + enum_item_key(screen->page);
-
-    int cur_list;
-    if (list1->active) cur_list = 0;
-    else if (list2->active) cur_list = 1;
-    else if (list3->active) cur_list = 2;
-    else return;
-
-    switch (screen->page)
-    {
-    case df::viewscreen_layer_militaryst::Positions:
-        {
-            static const char *lists[] = { "/Squads", "/Positions", "/Candidates" };
-            focus += lists[cur_list];
-            break;
-        }
-
-    case df::viewscreen_layer_militaryst::Equip:
-        {
-            focus += "/" + enum_item_key(screen->equip.mode);
-
-            switch (screen->equip.mode)
-            {
-            case df::viewscreen_layer_militaryst::T_equip::Customize:
-                {
-                    if (screen->equip.edit_mode < 0)
-                        focus += "/View";
-                    else
-                        focus += "/" + enum_item_key(screen->equip.edit_mode);
-                    break;
-                }
-            case df::viewscreen_layer_militaryst::T_equip::Uniform:
-                break;
-            case df::viewscreen_layer_militaryst::T_equip::Priority:
-                {
-                    if (screen->equip.prio_in_move >= 0)
-                        focus += "/Move";
-                    else
-                        focus += "/View";
-                    break;
-                }
-            }
-
-            static const char *lists[] = { "/Squads", "/Positions", "/Choices" };
-            focus += lists[cur_list];
-            break;
-        }
-
-    default:
-        break;
-    }
-}
-
-DEFINE_GET_FOCUS_STRING_HANDLER(workshop_profile)
-{
-    typedef df::viewscreen_workshop_profilest::T_tab T_tab;
-    switch(screen->tab)
-    {
-    case T_tab::Workers:
-        focus += "/Unit";
-        break;
-    case T_tab::Orders:
-        focus += "/Orders";
-        break;
-    case T_tab::Restrictions:
-        focus += "/Restrictions";
-        break;
-    }
-}
-
-DEFINE_GET_FOCUS_STRING_HANDLER(layer_noblelist)
-{
-    auto list1 = getLayerList(screen, 0);
-    auto list2 = getLayerList(screen, 1);
-    if (!list1 || !list2) return;
-
-    focus += "/" + enum_item_key(screen->mode);
-}
-
-DEFINE_GET_FOCUS_STRING_HANDLER(pet)
-{
-    focus += "/" + enum_item_key(screen->mode);
-
-    switch (screen->mode)
-    {
-    case df::viewscreen_petst::List:
-        focus += vector_get(screen->is_vermin, screen->cursor) ? "/Vermin" : "/Unit";
-        break;
-
-    case df::viewscreen_petst::SelectTrainer:
-        if (vector_get(screen->trainer_unit, screen->trainer_cursor))
-            focus += "/Unit";
-        break;
-
-    default:
-        break;
-    }
-}
-
-DEFINE_GET_FOCUS_STRING_HANDLER(layer_overall_health)
-{
-    auto list1 = getLayerList(screen, 0);
-    if (!list1) return;
-
-    focus += "/Units";
-}
-
-DEFINE_GET_FOCUS_STRING_HANDLER(tradegoods)
-{
-    if (!screen->has_traders || screen->is_unloading)
-        focus += "/NoTraders";
-    else if (screen->in_edit_count)
-        focus += "/EditCount";
-    else
-        focus += (screen->in_right_pane ? "/Items/Broker" : "/Items/Trader");
-}
-
-DEFINE_GET_FOCUS_STRING_HANDLER(layer_assigntrade)
-{
-    auto list1 = getLayerList(screen, 0);
-    auto list2 = getLayerList(screen, 1);
-    if (!list1 || !list2) return;
-
-    int list_idx = vector_get(screen->visible_lists, list1->cursor, (int16_t)-1);
-    unsigned num_lists = sizeof(screen->lists)/sizeof(screen->lists[0]);
-    if (unsigned(list_idx) >= num_lists)
-        return;
-
-    if (list1->active)
-        focus += "/Groups";
-    else
-        focus += "/Items";
-}
-
-DEFINE_GET_FOCUS_STRING_HANDLER(stores)
-{
-    if (!screen->in_right_list)
-        focus += "/Categories";
-    else if (screen->in_group_mode)
-        focus += "/Groups";
-    else
-        focus += "/Items";
-}
-
-DEFINE_GET_FOCUS_STRING_HANDLER(layer_stockpile)
-{
-    auto list1 = getLayerList(screen, 0);
-    auto list2 = getLayerList(screen, 1);
-    auto list3 = getLayerList(screen, 2);
-    if (!list1 || !list2 || !list3 || !screen->settings) return;
-
-    auto group = screen->cur_group;
-    if (group != vector_get(screen->group_ids, list1->cursor))
-        return;
-
-    focus += "/" + enum_item_key(group);
-
-    auto bits = vector_get(screen->group_bits, list1->cursor);
-    if (bits.whole && !(bits.whole & screen->settings->flags.whole))
-    {
-        focus += "/Off";
-        return;
-    }
-
-    focus += "/On";
-
-    if (list2->active || list3->active || screen->list_ids.empty()) {
-        focus += "/" + enum_item_key(screen->cur_list);
-
-        if (list3->active)
-            focus += (screen->item_names.empty() ? "/None" : "/Item");
-    }
-}
-
-DEFINE_GET_FOCUS_STRING_HANDLER(locations)
-{
-    focus += "/" + enum_item_key(screen->menu);
-}
-
-DEFINE_GET_FOCUS_STRING_HANDLER(jobmanagement)
-{
-    focus += (screen->in_max_workshops ? "/MaxWorkshops" : "/Main");
-}
-
-DEFINE_GET_FOCUS_STRING_HANDLER(workquota_condition)
-{
-    focus += "/" + enum_item_key(screen->mode);
-    if (screen->item_count_edit)
-        focus += "/EditCount";
 }
 
 std::string Gui::getFocusString(df::viewscreen *top)
@@ -637,8 +389,6 @@ bool Gui::default_hotkey(df::viewscreen *top)
     {
         if (strict_virtual_cast<df::viewscreen_dwarfmodest>(top))
             return true;
-        if (strict_virtual_cast<df::viewscreen_dungeonmodest>(top))
-            return true;
     }
     return false;
 }
@@ -651,19 +401,6 @@ bool Gui::dwarfmode_hotkey(df::viewscreen *top)
 {
     // Require the main dwarf mode screen
     return !!strict_virtual_cast<df::viewscreen_dwarfmodest>(top);
-}
-
-bool Gui::unitjobs_hotkey(df::viewscreen *top)
-{
-    // Require the unit or jobs list
-    return !!strict_virtual_cast<df::viewscreen_joblistst>(top) ||
-           !!strict_virtual_cast<df::viewscreen_unitlistst>(top);
-}
-
-bool Gui::item_details_hotkey(df::viewscreen *top)
-{
-    // Require the main dwarf mode screen
-    return !!strict_virtual_cast<df::viewscreen_itemst>(top);
 }
 
 static bool has_cursor()
@@ -794,45 +531,11 @@ df::job *Gui::getSelectedWorkshopJob(color_ostream &out, bool quiet)
     return selected->jobs[idx];
 }
 
-bool Gui::any_job_hotkey(df::viewscreen *top)
-{
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_joblistst, top))
-        return vector_get(screen->jobs, screen->cursor_pos) != NULL;
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_unitlistst, top))
-        return vector_get(screen->jobs[screen->page], screen->cursor_pos[screen->page]) != NULL;
-
-    return workshop_job_hotkey(top);
-}
-
 df::job *Gui::getSelectedJob(color_ostream &out, bool quiet)
 {
     df::viewscreen *top = Core::getTopViewscreen();
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_jobst, top))
-    {
-        return screen->job;
-    }
-    if (VIRTUAL_CAST_VAR(joblist, df::viewscreen_joblistst, top))
-    {
-        df::job *job = vector_get(joblist->jobs, joblist->cursor_pos);
-
-        if (!job && !quiet)
-            out.printerr("Selected unit has no job\n");
-
-        return job;
-    }
-    else if (VIRTUAL_CAST_VAR(unitlist, df::viewscreen_unitlistst, top))
-    {
-        int page = unitlist->page;
-        df::job *job = vector_get(unitlist->jobs[page], unitlist->cursor_pos[page]);
-
-        if (!job && !quiet)
-            out.printerr("Selected unit has no job\n");
-
-        return job;
-    }
-    else if (auto dfscreen = dfhack_viewscreen::try_cast(top))
+    
+    if (auto dfscreen = dfhack_viewscreen::try_cast(top))
         return dfscreen->getSelectedJob();
     else
         return getSelectedWorkshopJob(out, quiet);
@@ -847,176 +550,6 @@ df::unit *Gui::getAnyUnit(df::viewscreen *top)
     using df::global::ui_building_in_assign;
     using df::global::ui_building_assign_units;
     using df::global::ui_building_item_cursor;
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_unitst, top))
-    {
-        return screen->unit;
-    }
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_joblistst, top))
-    {
-        if (auto unit = vector_get(screen->units, screen->cursor_pos))
-            return unit;
-        if (auto job = vector_get(screen->jobs, screen->cursor_pos))
-            return Job::getWorker(job);
-        return NULL;
-    }
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_unitlistst, top))
-        return vector_get(screen->units[screen->page], screen->cursor_pos[screen->page]);
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_dungeon_monsterstatusst, top))
-        return screen->unit;
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_layer_unit_relationshipst, top))
-    {
-        if (VIRTUAL_CAST_VAR(list, df::layer_object_listst, vector_get(screen->layer_objects, 0)))
-            return vector_get(screen->relation_unit, list->cursor);
-
-        return NULL;
-    }
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_itemst, top))
-    {
-        df::general_ref *ref = vector_get(screen->entry_ref, screen->cursor_pos);
-        return ref ? ref->getUnit() : NULL;
-    }
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_workshop_profilest, top))
-    {
-        if (screen->tab == df::viewscreen_workshop_profilest::Workers)
-            return vector_get(screen->workers, screen->worker_idx);
-        return NULL;
-    }
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_layer_noblelistst, top))
-    {
-        switch (screen->mode)
-        {
-        case df::viewscreen_layer_noblelistst::List:
-            if (auto list1 = getLayerList(screen, 0))
-            {
-                if (auto info = vector_get(screen->info, list1->cursor))
-                    return info->unit;
-            }
-            return NULL;
-
-        case df::viewscreen_layer_noblelistst::Appoint:
-            if (auto list2 = getLayerList(screen, 1))
-            {
-                if (auto info = vector_get(screen->candidates, list2->cursor))
-                    return info->unit;
-            }
-            return NULL;
-
-        default:
-            return NULL;
-        }
-    }
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_locationsst, top))
-    {
-        switch (screen->menu)
-        {
-        case df::viewscreen_locationsst::AssignOccupation:
-            return vector_get(screen->units, screen->unit_idx);
-        case df::viewscreen_locationsst::Occupations:
-        {
-            auto occ = vector_get(screen->occupations, screen->occupation_idx);
-            if (occ)
-                return df::unit::find(occ->unit_id);
-            return NULL;
-        }
-        default:
-            return NULL;
-        }
-    }
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_petst, top))
-    {
-        df::viewscreen_petst::T_animal animal_default;
-        animal_default.unit = NULL;
-        switch (screen->mode)
-        {
-        case df::viewscreen_petst::List:
-            if (!vector_get(screen->is_vermin, screen->cursor))
-                return vector_get(screen->animal, screen->cursor, animal_default).unit;
-            return NULL;
-
-        case df::viewscreen_petst::SelectTrainer:
-            return vector_get(screen->trainer_unit, screen->trainer_cursor);
-
-        default:
-            return NULL;
-        }
-    }
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_layer_overall_healthst, top))
-    {
-        if (auto list1 = getLayerList(screen, 0))
-            return vector_get(screen->unit, list1->cursor);
-        return NULL;
-    }
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_textviewerst, top))
-    {
-        if (screen->parent)
-            return getAnyUnit(screen->parent);
-        return NULL;
-    }
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_reportlistst, top))
-        return vector_get(screen->units, screen->cursor);
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_announcelistst, top))
-    {
-        if (world && screen->unit) {
-            // in (r)eports -> enter
-            auto *report = vector_get(screen->reports, screen->sel_idx);
-            if (report)
-            {
-                for (df::unit *unit : world->units.all)
-                {
-                    if (unit && screen->report_type >= 0 && screen->report_type < 3
-                        && unit != screen->unit) // find 'other' unit related to this report
-                    {
-                        for (int32_t report_id : unit->reports.log[screen->report_type])
-                        {
-                            if (report_id == report->id)
-                                return unit;
-                        }
-                    }
-                }
-            }
-        } else {
-            // in (a)nnouncements
-            return NULL; // cannot determine unit from reports
-        }
-    }
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_layer_militaryst, top))
-    {
-        if (screen->page == df::viewscreen_layer_militaryst::T_page::Positions) {
-            auto positions = getLayerList(screen, 1);
-            if (positions && positions->enabled && positions->active)
-                return vector_get(screen->positions.assigned, positions->cursor);
-
-            auto candidates = getLayerList(screen, 2);
-            if (candidates && candidates->enabled && candidates->active)
-                return vector_get(screen->positions.candidates, candidates->cursor);
-        }
-        if (screen->page == df::viewscreen_layer_militaryst::T_page::Equip) {
-            auto positions = getLayerList(screen, 1);
-            if (positions && positions->enabled && positions->active)
-                return vector_get(screen->equip.units, positions->cursor);
-        }
-    }
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_layer_unit_healthst, top))
-        return screen->unit;
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_customize_unitst, top))
-        return screen->unit;
 
     if (auto dfscreen = dfhack_viewscreen::try_cast(top))
         return dfscreen->getSelectedUnit();
@@ -1126,75 +659,6 @@ df::item *Gui::getAnyItem(df::viewscreen *top)
     using df::global::ui_unit_view_mode;
     using df::global::ui_building_item_cursor;
 
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_textviewerst, top))
-    {
-        // return the main item if the parent screen is a viewscreen_itemst
-        if (VIRTUAL_CAST_VAR(parent_screen, df::viewscreen_itemst, screen->parent))
-            return parent_screen->item;
-
-        if (screen->parent)
-            return getAnyItem(screen->parent);
-
-        return NULL;
-    }
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_itemst, top))
-    {
-        df::general_ref *ref = vector_get(screen->entry_ref, screen->cursor_pos);
-        return ref ? ref->getItem() : NULL;
-    }
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_layer_assigntradest, top))
-    {
-        auto list1 = getLayerList(screen, 0);
-        auto list2 = getLayerList(screen, 1);
-        if (!list1 || !list2 || !list2->active)
-            return NULL;
-
-        int list_idx = vector_get(screen->visible_lists, list1->cursor, (int16_t)-1);
-        unsigned num_lists = sizeof(screen->lists)/sizeof(std::vector<int32_t>);
-        if (unsigned(list_idx) >= num_lists)
-            return NULL;
-
-        int idx = vector_get(screen->lists[list_idx], list2->cursor, -1);
-        if (auto info = vector_get(screen->info, idx))
-            return info->item;
-
-        return NULL;
-    }
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_tradegoodsst, top))
-    {
-        if (screen->in_right_pane)
-            return vector_get(screen->broker_items, screen->broker_cursor);
-        else
-            return vector_get(screen->trader_items, screen->trader_cursor);
-    }
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_storesst, top))
-    {
-        if (screen->in_right_list && !screen->in_group_mode)
-            return vector_get(screen->items, screen->item_cursor);
-
-        return NULL;
-    }
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_assign_display_itemst, top))
-    {
-        if (screen->sel_column == df::viewscreen_assign_display_itemst::T_sel_column::Items)
-            return vector_get(screen->items[screen->item_type[screen->sel_type]],
-                screen->sel_item);
-
-        return NULL;
-    }
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_treasurelistst, top))
-    {
-        if (world)
-            return vector_get(world->items.other[df::items_other_id::ANY_ARTIFACT], screen->sel_idx);
-        return NULL;
-    }
-
     if (auto dfscreen = dfhack_viewscreen::try_cast(top))
         return dfscreen->getSelectedItem();
 
@@ -1261,12 +725,6 @@ df::building *Gui::getAnyBuilding(df::viewscreen *top)
     using namespace ui_sidebar_mode;
     using df::global::ui_look_list;
     using df::global::ui_look_cursor;
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_buildinglistst, top))
-        return vector_get(screen->buildings, screen->cursor);
-
-    if (VIRTUAL_CAST_VAR(screen, df::viewscreen_workshop_profilest, top))
-        return df::building::find(screen->building_id);
 
     if (auto dfscreen = dfhack_viewscreen::try_cast(top))
         return dfscreen->getSelectedBuilding();
@@ -2156,16 +1614,16 @@ bool Gui::setDesignationCoords (const int32_t x, const int32_t y, const int32_t 
 df::coord Gui::getMousePos()
 {
     df::coord pos;
-    if (gps && gps->mouse_x > -1) {
+    if (gps && gps->mouse_x_tile > -1) {
         // return invalid coords if the cursor is not over the map
         DwarfmodeDims dims = getDwarfmodeViewDims();
-        if (gps->mouse_x < dims.map_x1 || gps->mouse_x > dims.map_x2 ||
-                gps->mouse_y < dims.map_y1 || gps->mouse_y > dims.map_y2) {
+        if (gps->mouse_x_tile < dims.map_x1 || gps->mouse_x_tile > dims.map_x2 ||
+                gps->mouse_y_tile < dims.map_y1 || gps->mouse_y_tile > dims.map_y2) {
             return pos;
         }
         pos = getViewportPos();
-        pos.x += gps->mouse_x - 1;
-        pos.y += gps->mouse_y - 1;
+        pos.x += gps->mouse_x_tile - 1;
+        pos.y += gps->mouse_y_tile - 1;
     }
     return pos;
 }

@@ -92,7 +92,6 @@ using namespace std;
 #include "df/unit_inventory_item.h"
 #include "df/vehicle.h"
 #include "df/vermin.h"
-#include "df/viewscreen_itemst.h"
 #include "df/world.h"
 #include "df/world_site.h"
 #include "df/written_content.h"
@@ -904,14 +903,6 @@ static bool detachItem(MapExtras::MapCache &mc, df::item *item)
             case general_ref_type::CONTAINED_IN_ITEM:
                 if (auto item2 = ref->getItem())
                 {
-                    // Viewscreens hold general_ref_contains_itemst pointers
-                    for (auto screen = Core::getTopViewscreen(); screen; screen = screen->parent)
-                    {
-                        auto vsitem = strict_virtual_cast<df::viewscreen_itemst>(screen);
-                        if (vsitem && vsitem->item == item2)
-                            return false;
-                    }
-
                     item2->flags.bits.weight_computed = false;
 
                     removeRef(item2->general_refs, general_ref_type::CONTAINS_ITEM, item->id);

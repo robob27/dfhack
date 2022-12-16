@@ -80,7 +80,19 @@ using std::string;
 df::coord2d Screen::getMousePos()
 {
     int32_t x = Renderer::GET_MOUSE_COORDS_SENTINEL, y = (int32_t)true;
-    if (!enabler || !enabler->renderer->get_mouse_coords(&x, &y)) {
+    int32_t dummy = 0;
+    if (!enabler || !enabler->renderer->get_mouse_coords(&dummy, &dummy, &x, &y)) {
+        return df::coord2d(-1, -1);
+    }
+    return df::coord2d(x, y);
+}
+
+// returns text grid coordinates, even if the game map is scaled differently
+df::coord2d Screen::getMousePixels()
+{
+    int32_t x = Renderer::GET_MOUSE_COORDS_SENTINEL, y = (int32_t)true;
+    int32_t dummy = 0;
+    if (!enabler || !enabler->renderer->get_mouse_coords(&x, &y, &dummy, &dummy)) {
         return df::coord2d(-1, -1);
     }
     return df::coord2d(x, y);
@@ -103,7 +115,7 @@ bool Screen::inGraphicsMode()
 }
 
 static bool doSetTile_default(const Pen &pen, int x, int y, bool map)
-{
+{/*
     auto dim = Screen::getWindowSize();
     if (x < 0 || x >= dim.x || y < 0 || y >= dim.y)
         return false;
@@ -119,8 +131,10 @@ static bool doSetTile_default(const Pen &pen, int x, int y, bool map)
     gps->screentexpos_grayscale[index] = (pen.tile_mode == Screen::Pen::TileColor);
     gps->screentexpos_cf[index] = pen.tile_fg;
     gps->screentexpos_cbr[index] = pen.tile_bg;
-
+    
     return true;
+    */
+    return false;
 }
 
 GUI_HOOK_DEFINE(Screen::Hooks::set_tile, doSetTile_default);
@@ -139,10 +153,11 @@ bool Screen::paintTile(const Pen &pen, int x, int y, bool map)
 
 static Pen doGetTile_default(int x, int y, bool map)
 {
+    /*
     auto dim = Screen::getWindowSize();
-    if (x < 0 || x >= dim.x || y < 0 || y >= dim.y)
+    if (x < 0 || x >= dim.x || y < 0 || y >= dim.y)*/
         return Pen(0,0,0,-1);
-
+        /*
     int index = x*dim.y + y;
     auto screen = gps->screen + index*4;
     if (screen[3] & 0x80)
@@ -168,6 +183,7 @@ static Pen doGetTile_default(int x, int y, bool map)
     }
 
     return pen;
+    */
 }
 
 GUI_HOOK_DEFINE(Screen::Hooks::get_tile, doGetTile_default);
@@ -547,6 +563,8 @@ dfhack_viewscreen *dfhack_viewscreen::try_cast(df::viewscreen *screen)
 {
     return is_instance(screen) ? static_cast<dfhack_viewscreen*>(screen) : NULL;
 }
+
+void dfhack_viewscreen::resize(int w, int h) {}
 
 void dfhack_viewscreen::check_resize()
 {
