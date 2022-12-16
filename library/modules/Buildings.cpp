@@ -215,11 +215,13 @@ df::specific_ref *Buildings::getSpecificRef(df::building *building, df::specific
 
     return findRef(building->specific_refs, type);
 }
-/*
+
 bool Buildings::setOwner(df::building *bld, df::unit *unit)
 {
-    CHECK_NULL_POINTER(bld);
+    return false;
 
+/*
+    CHECK_NULL_POINTER(bld);
     if (!bld->is_room)
         return false;
     if (bld->owner == unit)
@@ -256,9 +258,8 @@ bool Buildings::setOwner(df::building *bld, df::unit *unit)
         bld->owner_id = -1;
     }
 
-    return true;
+    return true;*/
 }
-*/
 df::building *Buildings::findAtTile(df::coord pos)
 {
     auto occ = Maps::getTileOccupancy(pos);
@@ -774,6 +775,31 @@ int Buildings::countExtentTiles(df::building_extents *ext, int defval)
     return cnt;
 }
 
+bool Buildings::containsTile(df::building* bld, df::coord2d tile, bool room)
+{
+    CHECK_NULL_POINTER(bld);
+
+    if (room)
+    {
+        if (!bld->room.extents)
+            return false;
+    }
+    else
+    {
+        if (tile.x < bld->x1 || tile.x > bld->x2 || tile.y < bld->y1 || tile.y > bld->y2)
+            return false;
+    }
+
+    if (bld->room.extents && (room || bld->isExtentShaped()))
+    {
+        df::building_extents_type* etile = getExtentTile(bld->room, tile);
+        if (!etile || !*etile)
+            return false;
+    }
+
+    return true;
+}
+
 bool Buildings::hasSupport(df::coord pos, df::coord2d size)
 {
     for (int dx = -1; dx <= size.x; dx++)
@@ -1230,6 +1256,30 @@ static std::map<df::building_type, std::vector<std::string>> room_quality_names 
         "Royal Mausoleum"}}
 };
 
+std::string Buildings::getRoomDescription(df::building* building, df::unit* unit)
+{
+    CHECK_NULL_POINTER(building);
+    // unit can be null
+    return "";
+    /*
+    auto btype = building->getType();
+    if (room_quality_names.find(btype) == room_quality_names.end())
+        return "";
+
+    int32_t value = building->getRoomValue(unit);
+    auto level = ENUM_FIRST_ITEM(dfhack_room_quality_level);
+    for (auto i_level = level; is_valid_enum_item(i_level); i_level = next_enum_item(i_level, false))
+    {
+        if (value >= ENUM_ATTR(dfhack_room_quality_level, min_value, i_level))
+        {
+            level = i_level;
+        }
+    }
+
+    return vector_get(room_quality_names[btype], size_t(level), string(""));
+    */
+}
+
 void Buildings::getStockpileContents(df::building_stockpilest *stockpile, std::vector<df::item*> *items)
 {
     CHECK_NULL_POINTER(stockpile);
@@ -1241,6 +1291,82 @@ void Buildings::getStockpileContents(df::building_stockpilest *stockpile, std::v
         df::item *item = *stored;
         items->push_back(item);
     }
+}
+
+bool Buildings::isActivityZone(df::building* building)
+{
+    return false;
+    /*
+    CHECK_NULL_POINTER(building);
+    return building->getType() == building_type::Civzone
+        && building->getSubtype() == (short)civzone_type::ActivityZone;
+    */
+}
+bool Buildings::isPenPasture(df::building* building)
+{
+    return false;
+    /*
+    if (!isActivityZone(building))
+        return false;
+
+    return ((df::building_civzonest*)building)->zone_flags.bits.pen_pasture != 0;
+    */
+}
+
+bool Buildings::isPitPond(df::building* building)
+{
+    return false;
+    /*
+    if (!isActivityZone(building))
+        return false;
+    return ((df::building_civzonest*)building)->zone_flags.bits.pit_pond != 0;
+    */
+}
+
+bool Buildings::isActive(df::building* building)
+{
+    return false;
+    /*
+    if (!isActivityZone(building))
+        return false;
+    return ((df::building_civzonest*)building)->zone_flags.bits.active != 0;
+    */
+}
+
+bool Buildings::isHospital(df::building* building)
+{
+    return false;
+    /*
+    if (!isActivityZone(building))
+        return false;
+    return ((df::building_civzonest*)building)->zone_flags.bits.hospital != 0;
+    */
+}
+
+bool Buildings::isAnimalTraining(df::building* building)
+{
+    return false;
+    /*
+    if (!isActivityZone(building))
+        return false;
+    return ((df::building_civzonest*)building)->zone_flags.bits.animal_training != 0;
+    */
+}
+
+// returns building of pen/pit at cursor position (NULL if nothing found)
+df::building* Buildings::findPenPitAt(df::coord coord)
+{
+    return NULL;
+    /*
+    vector<df::building_civzonest*> zones;
+    Buildings::findCivzonesAt(&zones, coord);
+    for (auto zone = zones.begin(); zone != zones.end(); ++zone)
+    {
+        if (isPenPasture(*zone) || isPitPond(*zone))
+            return (*zone);
+    }
+    return NULL;
+    */
 }
 
 using Buildings::StockpileIterator;
