@@ -1696,7 +1696,7 @@ bool Core::Init()
     if (!listen.get())
         cerr << "TCP listen failed.\n";
 
-    if (df::global::ui_sidebar_menus)
+    /*if (df::global::ui_sidebar_menus)
     {
         vector<string> args;
         const string & raw = df::global::ui_sidebar_menus->command_line.original;
@@ -1755,7 +1755,7 @@ bool Core::Init()
                 it++;
             }
         }
-    }
+    }*/
 
     cerr << "DFHack is running.\n";
     return true;
@@ -2174,7 +2174,7 @@ void Core::onStateChange(color_ostream &out, state_change_event event)
 
     if (event == SC_WORLD_LOADED && Version::is_prerelease())
     {
-        runCommand(out, "gui/prerelease-warning");
+        // runCommand(out, "gui/prerelease-warning");
         std::cerr << "loaded map in prerelease build" << std::endl;
     }
 

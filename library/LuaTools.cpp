@@ -2018,8 +2018,9 @@ static void cancel_timers(std::multimap<int,int> &timers)
 }
 
 void DFHack::Lua::Core::onStateChange(color_ostream &out, int code) {
+    std::cerr << "onStateChange 0\n";
     if (!State) return;
-
+    std::cerr << "onStateChange 1\n";
     switch (code)
     {
     case SC_MAP_UNLOADED:
@@ -2029,9 +2030,11 @@ void DFHack::Lua::Core::onStateChange(color_ostream &out, int code) {
 
     default:;
     }
-
+    std::cerr << "onStateChange 2\n";
     Lua::Push(State, code);
+    std::cerr << "onStateChange 3\n";
     Lua::Event::Invoke(out, State, (void*)onStateChange, 1);
+    std::cerr << "onStateChange 4\n";
 }
 
 static void run_timers(color_ostream &out, lua_State *L,

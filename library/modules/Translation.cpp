@@ -133,6 +133,7 @@ void Translation::setNickname(df::language_name *name, std::string nick)
 
 string Translation::TranslateName(const df::language_name * name, bool inEnglish, bool onlyLastPart)
 {
+    return "something";
     CHECK_NULL_POINTER(name);
 
     string out;

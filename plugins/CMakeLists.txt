@@ -74,6 +74,12 @@ add_custom_target(generate_proto DEPENDS ${PROJECT_PROTO_TMP_FILES})
 
 set_source_files_properties( Brushes.h PROPERTIES HEADER_FILE_ONLY TRUE )
 
+# Robob
+option(BUILD_ROBOB "Build stuff Robob is testing." ON)
+if(BUILD_ROBOB)
+    dfhack_plugin(luasocket luasocket.cpp LINK_LIBRARIES clsocket lua dfhack-tinythread)
+endif()
+
 # Plugins
 option(BUILD_SUPPORTED "Build the supported plugins (reveal, probe, etc.)." ON)
 if(BUILD_SUPPORTED)
