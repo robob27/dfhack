@@ -35,6 +35,9 @@
 #include "df/unit.h"
 #include "df/world.h"
 
+#include "df/proj_itemst.h"
+#include "df/projectile.h"
+
 #include <array>
 
 using std::string;
@@ -57,6 +60,8 @@ namespace DFHack {
     DBG_DECLARE(timestream, cycle, DebugCategory::LINFO);
     // for logging during event callbacks
     DBG_DECLARE(timestream, event, DebugCategory::LINFO);
+    // for logging furing the projectile dungeons and dragons
+    DBG_DECLARE(timestream, projectile, DebugCategory::LINFO);
 }
 
 static const string CONFIG_KEY = string(plugin_name) + "/config";
@@ -181,6 +186,8 @@ DFhackCExport command_result plugin_enable(color_ostream &out, bool enable) {
 DFhackCExport command_result plugin_shutdown(color_ostream &out) {
     DEBUG(control,out).print("shutting down %s\n", plugin_name);
 
+    EventManager::unregisterAll(plugin_self);
+
     return CR_OK;
 }
 
@@ -222,6 +229,7 @@ DFhackCExport command_result plugin_onstatechange(color_ostream &out, state_chan
                                     plugin_name);
             plugin_enable(out, false);
         }
+        EventManager::unregisterAll(plugin_self);
     }
     return CR_OK;
 }
@@ -393,6 +401,62 @@ static void adjust_units(color_ostream &out, int32_t timeskip) {
             continue;
         adjust_unit_counters(unit, timeskip);
         adjust_job_counter(unit, timeskip);
+    }
+}
+
+static void adjust_projectiles(color_ostream &out) {
+    for (auto proj = world->proj_list.next; proj != NULL; proj = proj->next)
+    {
+        STRICT_VIRTUAL_CAST_VAR(item, df::proj_itemst, proj->item);
+        // double check that bow_id is set for siege projectiles
+        // it has been added to avoid checking flying body parts without checking if is instance of item_corpsepiecest
+        if (!item || item->flags.bits.auto_hit || item->spec_target_unit == -1 || item->flags.bits.to_be_deleted || item->flags.bits.has_hit_ground || item->flags.bits.struck)
+            continue;
+
+        // only cared about things with a target unit
+        auto unit = df::unit::find(item->spec_target_unit);
+
+        if (!unit || unit == nullptr) {
+            continue;
+        }
+
+        auto firer = item->firer;
+
+        // only care about things that are fired by units
+        if (!firer || firer == nullptr) {
+            continue;
+        }
+
+        // we use this to keep track of items we have processed.
+        // even if it actually does something for hits, it shouldn't matter since we're controlling the hit/miss
+        item->flags.bits.auto_hit = true;
+
+        auto target_unit_pos = unit->pos;
+        int32_t hit_rating = item->hit_rating;
+        int32_t proj_id = item->id;
+
+        bool isOurAttack = Units::isOwnGroup(firer);
+
+        if (hit_rating >= 100) {
+            item->origin_pos.x = target_unit_pos.x;
+            item->origin_pos.y = target_unit_pos.y + 1;
+            item->origin_pos.z = target_unit_pos.z;
+
+            item->target_pos.x = target_unit_pos.x;
+            item->target_pos.y = target_unit_pos.y - 1;
+            item->target_pos.z = target_unit_pos.z;
+
+            item->cur_pos.x = target_unit_pos.x;
+            item->cur_pos.y = target_unit_pos.y;
+            item->cur_pos.z = target_unit_pos.z;
+
+            item->min_hit_distance = 0;
+            item->distance_flown = 0;
+            DEBUG(projectile,out).print("Projectile %d (fired by %s) hit unit %d. Hit rating vs 100: %d.\n", proj_id, isOurAttack ? "friendly" : "enemy", unit->id, hit_rating);
+        } else {
+            item->distance_flown = item->min_ground_distance;
+            DEBUG(projectile,out).print("Projectile %d (fired by %s) missed. Hit rating vs 100: %d.\n", proj_id, isOurAttack ? "friendly" : "enemy", hit_rating);
+        }
     }
 }
 
@@ -622,6 +686,9 @@ static void do_cycle(color_ostream &out) {
     timeskip_deficit = std::min(desired_timeskip - float(timeskip), 100.0F);
 
     DEBUG(cycle,out).print("cur_year_tick: %d, real_fps: %d, timeskip: (%d, +%.2f)\n", *cur_year_tick, real_fps, timeskip, timeskip_deficit);
+    // when timestream is enabled, just simulate projectiles regardless of the timeskip
+    // we don't want it switching back and forth between real sim and fake sim
+    adjust_projectiles(out);
     if (timeskip <= 0)
         return;
 
