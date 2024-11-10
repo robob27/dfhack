@@ -6196,7 +6196,7 @@ TabBar class
 This widget implements a set of one or more tabs to allow navigation between groups
 of content.
 
-:wrap: If true, tabs automatically wrap on the width of the window and will 
+:wrap: If true, tabs automatically wrap on the width of the window and will
        continue rendering on the next line(s) if all tabs cannot fit on a single line.
        If false, tabs will be truncated and can be scrolled using ``scroll_key``
        and ``scroll_key_back``, mouse wheel or by clicking on the scroll labels
