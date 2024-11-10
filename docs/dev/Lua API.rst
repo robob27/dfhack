@@ -6304,9 +6304,16 @@ TabBar class
 ------------
 
 This widget implements a set of one or more tabs to allow navigation between groups
-of content. Tabs automatically wrap on the width of the window and will continue
-rendering on the next line(s) if all tabs cannot fit on a single line.
+of content.
 
+:wrap: If true, tabs automatically wrap on the width of the window and will
+       continue rendering on the next line(s) if all tabs cannot fit on a single line.
+       If false, tabs will be truncated and can be scrolled using ``scroll_key``
+       and ``scroll_key_back``, mouse wheel or by clicking on the scroll labels
+       that will automatically appear on the left and right sides of the tab bar
+       as needed. When clicking on a tab or using ``key`` or ``key_back`` to switch tabs,
+       the selected tab will be scrolled into view if it is not already visible.
+       Defaults to true.
 :key: Specifies a keybinding that can be used to switch to the next tab.
       Defaults to ``CUSTOM_CTRL_T``.
 :key_back: Specifies a keybinding that can be used to switch to the previous
