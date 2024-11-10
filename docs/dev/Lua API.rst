@@ -6238,14 +6238,14 @@ of content.
 :scroll_right_text: The text to display on the right scroll label.
                     Defaults to ``>>>``.
 :scroll_step: The number of units to scroll tabs by.
-              Defaults to `10`.
+              Defaults to 10.
 :fast_scroll_multiplier: The multiplier for fast scrolling (holding shift).
-                         Defaults to `3`.
+                         Defaults to 3.
 :scroll_into_view_offset: After a selected tab is scrolled into view, this offset
                           is added to the scroll position to ensure the tab is
                           not flush against the edge of the tab bar, allowing
                           some space for the user to see the next tab.
-                          Defaults to `5`.
+                          Defaults to 5.
 
 Tab class
 ---------
