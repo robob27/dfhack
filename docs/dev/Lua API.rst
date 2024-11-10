@@ -6339,6 +6339,23 @@ of content.
            itself as the second. The default implementation, which will handle most
            situations, returns ``self.active_tab_pens``, if ``self.get_cur_page() == idx``,
            otherwise returns ``self.inactive_tab_pens``.
+:scroll_key: Specifies a keybinding that can be used to scroll the tabs to the right.
+             Defaults to ``CUSTOM_ALT_T``.
+:scroll_key_back: Specifies a keybinding that can be used to scroll the tabs to the left.
+                  Defaults to ``CUSTOM_ALT_Y``.
+:scroll_left_text: The text to display on the left scroll label.
+                   Defaults to ``<<<``.
+:scroll_right_text: The text to display on the right scroll label.
+                    Defaults to ``>>>``.
+:scroll_step: The number of units to scroll tabs by.
+              Defaults to 10.
+:fast_scroll_multiplier: The multiplier for fast scrolling (holding shift).
+                         Defaults to 3.
+:scroll_into_view_offset: After a selected tab is scrolled into view, this offset
+                          is added to the scroll position to ensure the tab is
+                          not flush against the edge of the tab bar, allowing
+                          some space for the user to see the next tab.
+                          Defaults to 5.
 
 Tab class
 ---------
