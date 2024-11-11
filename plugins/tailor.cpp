@@ -334,7 +334,13 @@ public:
                     }
 
                     if (w->getWear() > 1)
-                        w->flags.bits.dump = true;
+                        if (w->flags.bits.artifact) {
+                            w->flags.bits.owned = false;
+                            w->flags.bits.forbid = true;
+                            w->flags.bits.forbid = false;
+                        } else {
+                            w->flags.bits.dump = true;
+                        }
                 }
 
             }
